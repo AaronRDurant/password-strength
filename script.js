@@ -6,10 +6,15 @@ passwordInput.addEventListener("input", updateStrengthMeter);
 
 function updateStrengthMeter() {
   const weaknesses = calculatePasswordStrength(passwordInput.value);
+
   let strength = 100;
+  reasonsContainer.innerHTML = "";
   weaknesses.forEach((weakness) => {
     if (weakness == null) return;
     strength -= weakness.deduction;
+    const messageElement = document.createElement("div");
+    messageElement.innerText = weakness.message;
+    reasonsContainer.appendChild(messageElement);
   });
   strengthMeter.style.setProperty("--strength", strength);
 }
@@ -18,6 +23,8 @@ function calculatePasswordStrength(password) {
   const weaknesses = [];
 
   weaknesses.push(lengthWeakness(password));
+  weaknesses.push(lowercaseWeakness(password));
+  weaknesses.push(uppercaseWeakness(password));
 
   return weaknesses;
 }
@@ -36,6 +43,32 @@ function lengthWeakness(password) {
     return {
       message: "Your password could be longer.",
       deduction: 15,
+    };
+  }
+}
+
+function uppercaseWeakness(password) {
+  return characterTypeWeakness(password, /[A-Z]/g, "uppercase");
+}
+
+function lowercaseWeakness(password) {
+  return characterTypeWeakness(password, /[a-z]/g, "lowercase");
+}
+
+function characterTypeWeakness(password, regex, type) {
+  const matches = password.match(regex) || [];
+
+  if (matches.length === 0) {
+    return {
+      message: `Your password has no ${type} characters.`,
+      deduction: 20,
+    };
+  }
+
+  if (matches.length <= 0) {
+    return {
+      message: `Your password could use more ${type} characters.`,
+      deduction: 5,
     };
   }
 }
